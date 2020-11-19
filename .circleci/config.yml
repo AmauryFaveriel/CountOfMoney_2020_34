@@ -4,10 +4,10 @@ jobs:
   test_client:
     docker:
       - image: circleci/node:lts
-    working_directory: ~/time_manager/client
+    working_directory: ~/com/client
     steps:
       - checkout:
-          path: ~/time_manager
+          path: ~/com
 
       # Download and cache dependencies
       - restore_cache:
@@ -48,11 +48,11 @@ jobs:
           POSTGRES_DB: app_test
           POSTGRES_PASSWORD:
 
-    working_directory: ~/time_manager/server
+    working_directory: ~/com/server
 
     steps:
       - checkout:
-          path: ~/time_manager
+          path: ~/com
 
       - run: mix local.hex --force
       - run: mix local.rebar --force
@@ -79,7 +79,7 @@ jobs:
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
 
       - store_test_results:
-          path: _build/test/lib/time_manager
+          path: _build/test/lib/com
 
   build_client:
     docker:
@@ -197,7 +197,7 @@ jobs:
           command: |
             cd ~/repo/.cloud/auto_deploy/ansible
             echo -e ${VAULT_PASS} >> password.txt
-            ansible-playbook -i inventory production.yml --vault-password-file password.txt --user ubuntu --key-file=~/.ssh/time_manager --tags deployment --extra-vars="docker_username=${REGISTRY_USERNAME} back_end_docker_image_name=${DOCKER_BACK_END_IMAGE_NAME} back_end_docker_image_tag=${CIRCLE_SHA1} client_docker_image_name=${DOCKER_CLIENT_IMAGE_NAME} client_docker_image_tag=${CIRCLE_SHA1}" 
+            ansible-playbook -i inventory production.yml --vault-password-file password.txt --user ubuntu --key-file=~/.ssh/com --tags deployment --extra-vars="docker_username=${REGISTRY_USERNAME} back_end_docker_image_name=${DOCKER_BACK_END_IMAGE_NAME} back_end_docker_image_tag=${CIRCLE_SHA1} client_docker_image_name=${DOCKER_CLIENT_IMAGE_NAME} client_docker_image_tag=${CIRCLE_SHA1}" 
           
 workflows:
   version: 2
