@@ -1,0 +1,20 @@
+docker_users:
+  - ubuntu
+
+docker_username: amauryfaveriel
+
+back_end_docker_image_name: 
+back_end_docker_image_tag: 
+
+client_docker_image_name: 
+client_docker_image_tag:
+
+database_name:
+
+database_uri:
+database_port:
+
+monitoring_database_name:
+
+monitoring_database_uri:
+monitoring_database_port:

@@ -21,7 +21,7 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_key_pair" "ssh-key" {
   public_key = file(var.public_ssh_key_file)
-  key_name   = "time_manager_ssh_key"
+  key_name   = "com_ssh_key"
 }
 
 module "production" {
