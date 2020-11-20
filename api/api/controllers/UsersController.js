@@ -1,0 +1,13 @@
+/**
+ * UsersController
+ *
+ * @description :: Server-side actions for handling incoming requests.
+ * @help        :: See https://sailsjs.com/docs/concepts/actions
+ */
+
+module.exports = {
+  register : function (req, res) {
+    console.log(req.body);
+    return res.status(201).json({name : myName});
+    }
+};
