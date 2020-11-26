@@ -2,7 +2,8 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 
 import Home from '../views/Home.vue';
-import Crypto from '../components/CryptoPage.vue';
+import CryptoList from '../components/CryptoList.vue';
+import CryptoPage from '../components/CryptoPage.vue';
 
 Vue.use(VueRouter);
 
@@ -11,11 +12,17 @@ export default new VueRouter({
   base: __dirname,
   routes: [
     { path: '/', component: Home, name: 'home' },
-    // Page test cryptocurrencies
+    // Page test cryptocurrencies list
     {
-      path: '/crypto',
-      component: Crypto,
-      name: 'crypto',
+      path: '/cryptolist',
+      component: CryptoList,
+      name: 'cryptolist',
+    },
+    {
+      path: '/crypto/:symbol',
+      component: CryptoPage,
+      name: 'cryptopage',
+      props: true,
     },
   ],
 });

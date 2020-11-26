@@ -1,13 +1,18 @@
 <template>
   <div>
-      <h1>Cryptocurrencies page</h1>
-      <div>
-        <ul>
-          <li v-for="(currency, index) in currencies" :key="index">
-            {{ currency.name }} : {{ currency.USD }}
-          </li>
-        </ul>
-      </div>
+    <section class="newsfeed-container">
+      <ul>
+        <li v-for="(article, index) in newsfeed" :key="index">
+          <a :href="article.url">
+            <article class="article-container">
+              <img :src="article.imageurl" alt="">
+              <h4>{{ article.title }}</h4>
+              <p>{{ article.body }}</p>
+            </article>
+          </a>
+        </li>
+      </ul>
+    </section>
   </div>
 </template>
 
@@ -15,30 +20,43 @@
 import axios from 'axios';
 
 export default {
+  props: [
+    'symbol',
+  ],
   data() {
     return {
-      currencies: [],
-      symbol: ['BTC', 'ETH', 'ADA'],
-      conversion: ['USD', 'EUR'],
+      newsfeed: null,
     };
   },
-  created() {
-    axios.get('https://min-api.cryptocompare.com/data/pricemulti', {
+  mounted() {
+    axios.get('https://min-api.cryptocompare.com/data/v2/news/', {
       params: {
-        fsyms: this.symbol.join(','),
-        tsyms: this.conversion.join(','),
-        api_key: 'c7139e931ffc980c572fa5ebfc65e3afc1cf51e57820e34ec9e092dfae8398a1',
+        lang: 'EN',
+        categories: this.symbol,
       },
-    }).then((result) => {
-      this.currencies = Object.entries(result.data).map((array) => ({
-        name: array[0],
-        ...array[1],
-      }));
-    });
+    }).then((result) => { this.newsfeed = result.data.Data; });
+  },
+  methods: {
+    getNewsfeed() {
+      axios.get('https://min-api.cryptocompare.com/data/v2/news/', {
+        params: {
+          lang: 'EN',
+          categories: this.symbol,
+        },
+      });
+    },
   },
 };
 </script>
 
 <style>
-
+ul{
+  list-style: none;
+}
+a{
+  text-decoration: none;
+}
+.article-container{
+  color: black;
+}
 </style>
