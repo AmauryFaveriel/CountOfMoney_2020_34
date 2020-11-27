@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="cryptopage-container">
     <section class="newsfeed-container">
       <ul>
         <li v-for="(article, index) in newsfeed" :key="index">
@@ -15,37 +15,112 @@
         </li>
       </ul>
     </section>
+    <section class="chart-container">
+      <div id="chart">
+        <chart type="line" height="350" :options="chartOptions" :series="series"></chart>
+      </div>
+    </section>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
+import chart from 'vue-apexcharts';
 
 export default {
+  components: {
+    chart,
+  },
   props: [
     'symbol',
   ],
   data() {
     return {
       newsfeed: null,
+      chartOptions: {
+        chart: {
+          height: 350,
+          type: 'line',
+          dropShadow: {
+            enabled: true,
+            color: '#000',
+            top: 18,
+            left: 7,
+            blur: 10,
+            opacity: 0.2,
+          },
+          toolbar: {
+            show: false,
+          },
+        },
+        stroke: {
+          curve: 'smooth',
+        },
+        markers: {
+          size: 1,
+        },
+        legend: {
+          position: 'top',
+          horizontalAlign: 'right',
+          floating: true,
+          offsetY: -25,
+          offsetX: -5,
+        },
+      },
+      series: [],
     };
   },
   mounted() {
-    axios.get('https://min-api.cryptocompare.com/data/v2/news/', {
-      params: {
-        lang: 'EN',
-        categories: this.symbol,
-      },
-    }).then((result) => { this.newsfeed = result.data.Data; });
+    this.getNewsfeed().then((result) => { this.newsfeed = result.data.Data; });
+    this.getCharts().then((result) => result.data.Data.Data)
+      .then((data) => {
+        this.series = [
+          {
+            name: 'High',
+            data: data.map((result) => result.high),
+          },
+          {
+            name: 'Low',
+            data: data.map((result) => result.low),
+          },
+          {
+            name: 'Open',
+            data: data.map((result) => result.open),
+          },
+          {
+            name: 'Close',
+            data: data.map((result) => result.close),
+          },
+        ];
+        this.chartOptions = {
+          ...this.chartOptions,
+          xaxis: {
+            categories: data.map((result) => this.timestampToDate(result.time)),
+          },
+        };
+        console.log(this.chartOptions);
+      });
   },
   methods: {
     getNewsfeed() {
-      axios.get('https://min-api.cryptocompare.com/data/v2/news/', {
+      return axios.get('https://min-api.cryptocompare.com/data/v2/news/', {
         params: {
           lang: 'EN',
           categories: this.symbol,
         },
       });
+    },
+    getCharts() {
+      return axios.get('https://min-api.cryptocompare.com/data/v2/histoday', {
+        params: {
+          fsym: this.symbol,
+          tsym: 'USD',
+          limit: 10,
+        },
+      });
+    },
+    timestampToDate(timestamp) {
+      return new Date(timestamp * 1000).toLocaleDateString('en-US');
     },
   },
 };
@@ -62,8 +137,17 @@ p{
   margin: 0;
 }
 
+.cryptopage-container{
+  display: flex;
+  justify-content: space-between;
+}
+
 .newsfeed-container{
   width: 30%;
+}
+
+.chart-container{
+  width: 70%;
 }
 .article-container{
   color: black;
