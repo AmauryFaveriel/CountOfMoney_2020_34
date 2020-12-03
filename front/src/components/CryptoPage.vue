@@ -1,23 +1,34 @@
 <template>
   <div class="cryptopage-container">
     <section class="newsfeed-container">
-      <ul>
-        <li v-for="(article, index) in newsfeed" :key="index">
+      <ul class="card-container">
+        <li v-for="(article, index) in newsfeed" :key="index" class="card">
           <a :href="article.url">
-            <article class="article-container">
-              <p class="article-categories">{{ article.categories }}</p>
-              <img class="article-image" :src="article.imageurl" alt="">
-              <h4 class="article-title">{{ article.title }}</h4>
-              <p class="article-body">{{ article.body }}</p>
-              <p class="article-source">{{ article.source }}</p>
-            </article>
+            <img :src="article.imageurl" alt="" class="card-img" />
+            <div class="card-info">
+              <div class="card-about">
+                <a class="card-tag">{{ article.categories }}</a>
+                <div class="card-time">
+                  {{ timestampToDate(article.published_on) }}
+                </div>
+              </div>
+              <h1 class="card-title">{{ article.title }}</h1>
+              <div class="card-creator">
+                by <a href="">{{ article.source }}</a>
+              </div>
+            </div>
           </a>
         </li>
       </ul>
     </section>
     <section class="chart-container">
       <div id="chart">
-        <chart type="line" height="350" :options="chartOptions" :series="series"></chart>
+        <chart
+          type="line"
+          height="350"
+          :options="chartOptions"
+          :series="series"
+        ></chart>
       </div>
     </section>
   </div>
@@ -31,9 +42,7 @@ export default {
   components: {
     chart,
   },
-  props: [
-    'symbol',
-  ],
+  props: ['symbol'],
   data() {
     return {
       newsfeed: null,
@@ -71,8 +80,11 @@ export default {
     };
   },
   mounted() {
-    this.getNewsfeed().then((result) => { this.newsfeed = result.data.Data; });
-    this.getCharts().then((result) => result.data.Data.Data)
+    this.getNewsfeed().then((result) => {
+      this.newsfeed = result.data.Data;
+    });
+    this.getCharts()
+      .then((result) => result.data.Data.Data)
       .then((data) => {
         this.series = [
           {
@@ -115,7 +127,7 @@ export default {
         params: {
           fsym: this.symbol,
           tsym: 'USD',
-          limit: 10,
+          limit: 20,
         },
       });
     },
@@ -126,50 +138,107 @@ export default {
 };
 </script>
 
-<style>
-ul{
-  list-style: none;
-}
-a{
-  text-decoration: none;
-}
-p{
+<style lang="scss">
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.cryptopage-container{
+body {
+  background: #ebecf0;
+  font-family: "Open Sans", sans-serif;
+  min-height: 100vh;
+
+  ul {
+  list-style: none;
+  }
+
+  a {
+    text-decoration: none;
+    color: #172b4d;
+  }
+
+  h1 {
+    font-family: "Song Myung", serif;
+  }
+}
+
+.cryptopage-container {
   display: flex;
   justify-content: space-between;
 }
 
-.newsfeed-container{
-  width: 30%;
+.newsfeed-container {
+  width: 45%;
 }
 
-.chart-container{
-  width: 70%;
+.chart-container {
+  width: 55%;
 }
-.article-container{
-  color: black;
-  text-align: left;
-  margin-bottom: 20px;
+
+:root {
+  font-size: 16px;
+  --card-img-height: 200px;
 }
-.article-categories {
-  color: grey;
-}
-.article-image {
+.card-container {
   width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+  transition: all 200ms ease-in-out;
 }
-.article-title {
-  margin: 0;
-}
-.article-body {
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.article-source {
-  color: grey;
+
+.card {
+  align-self: flex-start;
+  position: relative;
+  width: 375px;
+  min-width: 275px;
+  margin: 1.25rem 0.75rem;
+  background: white;
+  transition: all 300ms ease-in-out;
+
+  .card-img {
+    width: 100%;
+  }
+
+  .card-info {
+    position: relative;
+    padding: 0.75rem 1.25rem;
+    transition: all 200ms ease-in-out;
+
+    .card-about {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      transition: all 200ms ease-in-out;
+
+      .card-tag {
+        width: auto;
+        padding: 0.2rem 0.5rem;
+        font-size: 12px;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        background: #36b37e;
+        color: #fff;
+      }
+    }
+
+    .card-title {
+      z-index: 10;
+      font-size: 1.5rem;
+      padding-bottom: 0.75rem;
+      transition: all 350ms ease-in-out;
+    }
+
+    .card-creator {
+      padding-bottom: 0.75rem;
+      transition: all 250ms ease-in-out;
+    }
+  }
 }
 </style>
