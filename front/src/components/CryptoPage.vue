@@ -22,12 +22,20 @@
       </ul>
     </section>
     <section class="chart-container">
-      <div id="chart">
+      <div id="chart" class="chart">
         <chart
           type="line"
           height="350"
-          :options="chartOptions"
-          :series="series"
+          :options="histoOptions(histoDayData, 'day')"
+          :series="histoSeries(histoDayData)"
+        ></chart>
+      </div>
+      <div id="chart" class="chart">
+        <chart
+          type="line"
+          height="350"
+          :options="histoOptions(histoHourData, 'hour')"
+          :series="histoSeries(histoHourData)"
         ></chart>
       </div>
     </section>
@@ -35,8 +43,8 @@
 </template>
 
 <script>
-import axios from 'axios';
 import chart from 'vue-apexcharts';
+import cryptoapi from '../libs/cryptoapi';
 
 export default {
   components: {
@@ -45,6 +53,9 @@ export default {
   props: ['symbol'],
   data() {
     return {
+      histoDayData: null,
+      histoHourData: null,
+      tsym: 'USD',
       newsfeed: null,
       chartOptions: {
         chart: {
@@ -79,14 +90,53 @@ export default {
       series: [],
     };
   },
-  mounted() {
-    this.getNewsfeed().then((result) => {
+  created() {
+    cryptoapi.getNewsfeed(this.symbol).then((result) => {
       this.newsfeed = result.data.Data;
     });
-    this.getCharts()
-      .then((result) => result.data.Data.Data)
+    cryptoapi.getHisto('day', this.symbol, this.tsym, 20)
       .then((data) => {
-        this.series = [
+        this.histoDayData = data;
+      });
+    cryptoapi.getHisto('hour', this.symbol, this.tsym, 24)
+      .then((data) => {
+        this.histoHourData = data;
+      });
+  },
+  methods: {
+    timestampToDate(timestamp) {
+      return new Date(timestamp * 1000).toLocaleDateString('en-US');
+    },
+    timestampToHour(timestamp) {
+      const date = new Date(timestamp * 1000);
+      return `${date.getHours()}:00`;
+    },
+    histoOptions(data, type) {
+      if (data !== null) {
+        return {
+          ...this.chartOptions,
+          title: {
+            text: type === 'day' ? 'Price on last 20 days' : 'Price on last 24 hours',
+          },
+          xaxis: {
+            categories: data.map((result) => {
+              switch (type) {
+                case 'day':
+                  return this.timestampToDate(result.time);
+                case 'hour':
+                  return this.timestampToHour(result.time);
+                default:
+                  return null;
+              }
+            }),
+          },
+        };
+      }
+      return this.chartOptions;
+    },
+    histoSeries(data) {
+      if (data !== null) {
+        return [
           {
             name: 'High',
             data: data.map((result) => result.high),
@@ -104,35 +154,8 @@ export default {
             data: data.map((result) => result.close),
           },
         ];
-        this.chartOptions = {
-          ...this.chartOptions,
-          xaxis: {
-            categories: data.map((result) => this.timestampToDate(result.time)),
-          },
-        };
-        console.log(this.chartOptions);
-      });
-  },
-  methods: {
-    getNewsfeed() {
-      return axios.get('https://min-api.cryptocompare.com/data/v2/news/', {
-        params: {
-          lang: 'EN',
-          categories: this.symbol,
-        },
-      });
-    },
-    getCharts() {
-      return axios.get('https://min-api.cryptocompare.com/data/v2/histoday', {
-        params: {
-          fsym: this.symbol,
-          tsym: 'USD',
-          limit: 20,
-        },
-      });
-    },
-    timestampToDate(timestamp) {
-      return new Date(timestamp * 1000).toLocaleDateString('en-US');
+      }
+      return [];
     },
   },
 };
@@ -171,6 +194,11 @@ body {
 
 .newsfeed-container {
   width: 45%;
+  max-height: 85vh;
+  overflow-x: auto;
+  background-color: white;
+  margin-left: 20px;
+  border: black 1px solid;
 }
 
 .chart-container {
@@ -188,7 +216,6 @@ body {
   flex-flow: row wrap;
   justify-content: center;
   align-items: center;
-  transition: all 200ms ease-in-out;
 }
 
 .card {
@@ -198,7 +225,7 @@ body {
   min-width: 275px;
   margin: 1.25rem 0.75rem;
   background: white;
-  transition: all 300ms ease-in-out;
+  border: black 1px solid;
 
   .card-img {
     width: 100%;
@@ -214,7 +241,7 @@ body {
       justify-content: space-between;
       align-items: center;
       padding: 0.75rem 0;
-      transition: all 200ms ease-in-out;
+      flex-wrap: wrap;
 
       .card-tag {
         width: auto;
@@ -240,5 +267,11 @@ body {
       transition: all 250ms ease-in-out;
     }
   }
+}
+
+.chart {
+  background-color: white;
+  margin: 20px;
+  border: black 1px solid;
 }
 </style>
